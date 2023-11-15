@@ -9,6 +9,8 @@ const initializeMariaDB = () => {
     password: process.env.DB_PASSWORD || "mychatpassword",
     connectionLimit: 5,
   });
+
+  initializeDBSchema();
 };
 
 const executeSQL = async (query) => {
@@ -18,7 +20,7 @@ const executeSQL = async (query) => {
     const res = await conn.query(query);
     return res;
   } catch (err) {
-    console.log(err);
+    console.error(err);
   } finally {
     if (conn) conn.release();
   }
@@ -30,15 +32,11 @@ const initializeDBSchema = async () => {
     name VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
   );`;
+
   await executeSQL(userTableQuery);
-  const messageTableQuery = `CREATE TABLE IF NOT EXISTS messages (
-    id INT NOT NULL AUTO_INCREMENT,
-    user_id INT NOT NULL,
-    message VARCHAR(255) NOT NULL,
-    PRIMARY KEY (id),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  );`;
-  await executeSQL(messageTableQuery);
+
+  // You can add more tables or modify the schema as needed
 };
 
 module.exports = { executeSQL, initializeMariaDB, initializeDBSchema };
+

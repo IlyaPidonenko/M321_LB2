@@ -4,11 +4,33 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Chat Program</title>
+    <title>Chat App</title>
     <link rel="stylesheet" href="/style.css">
-    <script src="/script.js"></script>
 </head>
 <body>
-    <h1>Hello World</h1>
+    <div id="messenger-container">
+        <div id="user-container">
+            <div id="username-input">
+                <label for="username">Username:</label>
+                <input type="text" id="username" placeholder="Enter your username">
+            </div>
+            <button id="join-chat-button">Join Chat</button>
+            <div id="user-list-container">
+                <h3>Users Online:</h3>
+                <ul id="user-list"></ul>
+            </div>
+        </div>
+
+        <div>
+            <div id="chat-window"></div>
+            
+            <div id="input-container">
+                <input type="text" id="message-input" placeholder="Type your message...">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
 </body>
 </html>
