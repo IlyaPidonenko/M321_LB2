@@ -1,47 +1,53 @@
-// script.js
-document.addEventListener("DOMContentLoaded", function () {
-  const socket = new WebSocket("ws://localhost:3000");
-  const usernameInput = document.getElementById("username");
-  const joinChatButton = document.getElementById("join-chat-button");
-  const userListContainer = document.getElementById("user-list");
+let username;
+const messagesContainer = document.getElementById('chat-window');
+const usersContainer = document.getElementById('users-container');
+const usernameInput = document.getElementById('username');
+const messageInput = document.getElementById('message-input');
+const sendButton = document.getElementById('send-button');
+const socket = new WebSocket("ws://localhost:3000");
 
-  joinChatButton.addEventListener("click", () => {
-      const username = usernameInput.value;
-      if (username) {
-          socket.send(JSON.stringify({ type: "join", username }));
-      }
-  });
-
-  socket.addEventListener("open", (event) => {
-      console.log("WebSocket connected!");
-      socket.send(JSON.stringify({ type: "hello" }));
-  });
-
-  socket.addEventListener("message", (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "userList") {
-          updateUserList(data.userList);
-      } else {
-          console.log(`Received message: ${data.message}`);
-      }
-  });
-
-  socket.addEventListener("close", (event) => {
-      console.log("WebSocket closed.");
-  });
-
-  socket.addEventListener("error", (event) => {
-      console.error("WebSocket error:", event);
-  });
-
-  const updateUserList = (userList) => {
-      userListContainer.innerHTML = "<h3>Users Online:</h3>";
-      const ul = document.createElement("ul");
-      userList.forEach((user) => {
-          const li = document.createElement("li");
-          li.textContent = user;
-          ul.appendChild(li);
-      });
-      userListContainer.appendChild(ul);
-  };
+usernameInput.addEventListener('change', (event) => {
+  username = event.target.value;
+  messageInput.disabled = !username;
+  socket.send(JSON.stringify({ type: 'join', username }));
 });
+
+socket.addEventListener('message', (event) => {
+  const data = JSON.parse(event.data);
+  if (data.type === 'userList') {
+    displayUserList(data.users);
+  } else if (data.type === 'message') {
+    if (data.username !== username) {
+      displayMessage(data.username, data.message);
+    }
+  }
+});
+
+sendButton.addEventListener('click', sendMessage);
+
+function sendMessage() {
+  if (messageInput.value.trim() === '' || !username) {
+    alert('Please enter a username and a message.');
+    return;
+  }
+  const message = messageInput.value;
+  socket.send(JSON.stringify({ type: 'message', username, message }));
+  displayMessage(username, message); // Nachricht sofort anzeigen
+  messageInput.value = '';
+}
+
+function displayMessage(user, message) {
+  const messageElement = document.createElement('div');
+  messageElement.textContent = user + ": " + message;
+  messagesContainer.appendChild(messageElement);
+  messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function displayUserList(users) {
+  usersContainer.innerHTML = '';
+  users.forEach(user => {
+    const userElement = document.createElement('div');
+    userElement.textContent = user;
+    usersContainer.appendChild(userElement);
+  });
+}

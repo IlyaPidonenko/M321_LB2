@@ -1,47 +1,40 @@
 const WebSocket = require("ws");
+const connectedUsers = new Map(); // Speichert Benutzer und ihre WebSocket-Verbindungen
 
-let users = new Set();
-
-// Intiiate the websocket server
 const initializeWebsocketServer = (server) => {
   const websocketServer = new WebSocket.Server({ server });
-  websocketServer.on("connection", onConnection);
+  websocketServer.on("connection", (ws) => {
+    ws.on("message", (message) => onMessage(ws, message, websocketServer));
+    ws.on("close", () => onClose(ws, websocketServer));
+  });
 };
 
-// If a new connection is established, the onConnection function is called
-const onConnection = (ws) => {
-  console.log("New websocket connection");
-
-  ws.on("message", (message) => onMessage(ws, message));
-};
-
-// If a new message is received, the onMessage function is called
-const onMessage = (ws, message) => {
-  console.log("Message received: " + message);
-  try {
-    const data = JSON.parse(message);
-
-    if (data.type === "join" && data.username) {
-      // Füge den Benutzernamen zur Benutzerliste hinzu
-      users.add(data.username);
-      // Sende die aktualisierte Benutzerliste an alle Clients
-      broadcastUserList();
-    } else {
-      // Hier kannst du weitere Nachrichtenverarbeitung hinzufügen, falls benötigt
-    }
-  } catch (error) {
-    console.error("Error parsing JSON:", error);
+const onMessage = (ws, message, websocketServer) => {
+  const data = JSON.parse(message);
+  if (data.type === 'join') {
+    connectedUsers.set(ws, data.username);
+    broadcastUserList(websocketServer);
+  } else if (data.type === 'message') {
+    broadcastMessage(websocketServer, data.username, data.message);
   }
 };
 
-const broadcastUserList = () => {
-  const userList = Array.from(users);
-  const message = JSON.stringify({ type: "userList", userList });
+const onClose = (ws, websocketServer) => {
+  connectedUsers.delete(ws);
+  broadcastUserList(websocketServer);
+};
 
-  // Sende die Benutzerliste an alle verbundenen Clients
-  websocketServer.clients.forEach((client) => {
+const broadcastUserList = (websocketServer) => {
+  const userList = Array.from(connectedUsers.values());
+  websocketServer.clients.forEach(client => {
+    client.send(JSON.stringify({ type: 'userList', users: userList }));
+  });
+};
+
+const broadcastMessage = (websocketServer, username, message) => {
+  websocketServer.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(message);
+      client.send(JSON.stringify({ username, message }));
     }
   });
 };

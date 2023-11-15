@@ -15,7 +15,7 @@ body {
     display: flex;
 }
 
-#user-container {
+#users {
     width: 200px;
     display: flex;
     flex-direction: column;
