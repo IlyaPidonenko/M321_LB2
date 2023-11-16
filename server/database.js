@@ -43,7 +43,11 @@ const initializeDBSchema = async () => {
 
 
 const saveMessageToDB = async (username, message) => {
+<<<<<<< HEAD
   const userId = await addUserToDB(username);
+=======
+  const userId = await addUserToDB(username); 
+>>>>>>> fdbde72dff277d326b83cc496980e0f7f944051d
   const insertMessageQuery = `INSERT INTO messages (user_id, message) VALUES (${userId}, '${message}')`;
   await executeSQL(insertMessageQuery);
 };
