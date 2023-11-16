@@ -1,5 +1,6 @@
 const WebSocket = require("ws");
-const connectedUsers = new Map(); // Speichert Benutzer und ihre WebSocket-Verbindungen
+const { saveMessageToDB } = require('./database');
+const connectedUsers = new Map(); 
 
 const initializeWebsocketServer = (server) => {
   const websocketServer = new WebSocket.Server({ server });
@@ -9,12 +10,14 @@ const initializeWebsocketServer = (server) => {
   });
 };
 
+
 const onMessage = (ws, message, websocketServer) => {
   const data = JSON.parse(message);
   if (data.type === 'join') {
     connectedUsers.set(ws, data.username);
     broadcastUserList(websocketServer);
   } else if (data.type === 'message') {
+    saveMessageToDB(data.userId, data.message);
     broadcastMessage(websocketServer, data.username, data.message);
   }
 };
