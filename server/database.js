@@ -49,10 +49,16 @@ const saveMessageToDB = async (username, message) => {
   await executeSQL(insertMessageQuery);
 };
 
+
 const addUserToDB = async (username) => {
+  const checkUserQuery = `SELECT id FROM users WHERE name = '${username}'`;
+  const existingUser = await executeSQL(checkUserQuery);
+  if (existingUser.length > 0) {
+    return existingUser[0].id;
+  }
   const addUserQuery = `INSERT INTO users (name) VALUES ('${username}')`;
   const result = await executeSQL(addUserQuery);
-  return result.insertId; 
+  return result.insertId;
 };
 
 module.exports = { executeSQL, initializeMariaDB, initializeDBSchema, saveMessageToDB, addUserToDB };

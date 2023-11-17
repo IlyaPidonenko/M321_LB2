@@ -17,7 +17,7 @@ const onMessage = (ws, message, websocketServer) => {
     connectedUsers.set(ws, data.username);
     broadcastUserList(websocketServer);
   } else if (data.type === 'message') {
-    saveMessageToDB(data.userId, data.message);
+    saveMessageToDB(data.username, data.message);
     broadcastMessage(websocketServer, data.username, data.message);
   }
 };
