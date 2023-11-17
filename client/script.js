@@ -57,9 +57,7 @@ function displayMessage(user, message) {
 function displayUserList(users) {
   usersContainer.innerHTML = '';
   users.forEach(user => {
-    const userElement = document.createElement('div');
-    userElement.textContent = user;
-    usersContainer.appendChild(userElement);
+    displayUser(user);
   });
 }
 
@@ -68,7 +66,6 @@ function displayUser(user) {
   userElement.textContent = user;
   usersContainer.appendChild(userElement);
 }
-
 window.onload = () => {
   fetchCurrentUsers();
   fetchCurrentMessages();
@@ -77,7 +74,7 @@ window.onload = () => {
 const fetchCurrentUsers = () => {
   fetch('/api/users')
     .then(response => response.json())
-    .then(users => users.forEach(user => displayUser(user.name)))
+    .then(users => users.forEach(user => displayMessage(user.name)))
     .catch(error => console.error('Error fetching users:', error));
 };
 
@@ -90,7 +87,7 @@ const fetchCurrentMessages = async () => {
     messages.forEach(message => {
       const user = users.find(user => user.id === message.user_id);
       if (user) {
-        displayMessage(user.name, message.message);
+          displayMessage(user.name, message.message);
       }
     });
   } catch (error) {

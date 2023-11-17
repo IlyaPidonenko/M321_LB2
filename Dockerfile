@@ -10,5 +10,6 @@ COPY . .
 # Install the dependencies
 RUN npm i
 
+
 # Start the server when the container starts
 CMD npm start
