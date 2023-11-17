@@ -6,10 +6,20 @@ const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
 const socket = new WebSocket("ws://localhost:3000");
 
+const requestUserList = () => {
+  socket.send(JSON.stringify({ type: 'requestUsers' }));
+};
+socket.addEventListener('open', () => {
+  requestUserList(); 
+});
+
+
 usernameInput.addEventListener('change', (event) => {
   username = event.target.value;
   messageInput.disabled = !username;
+  if (username) {
   socket.send(JSON.stringify({ type: 'join', username }));
+  }
 });
 
 socket.addEventListener('message', (event) => {
@@ -18,6 +28,7 @@ socket.addEventListener('message', (event) => {
     displayUserList(data.users);
   } else if (data.type === 'message') {
     if (data.username !== username) {
+      console.log("Granatapfel")
       displayMessage(data.username, data.message);
     }
   }
@@ -51,3 +62,38 @@ function displayUserList(users) {
     usersContainer.appendChild(userElement);
   });
 }
+
+function displayUser(user) {
+  const userElement = document.createElement('div');
+  userElement.textContent = user;
+  usersContainer.appendChild(userElement);
+}
+
+window.onload = () => {
+  fetchCurrentUsers();
+  fetchCurrentMessages();
+};
+
+const fetchCurrentUsers = () => {
+  fetch('/api/users')
+    .then(response => response.json())
+    .then(users => users.forEach(user => displayUser(user.name)))
+    .catch(error => console.error('Error fetching users:', error));
+};
+
+const fetchCurrentMessages = async () => {
+  try {
+    const usersResponse = await fetch('/api/users');
+    const users = await usersResponse.json();
+    const messagesResponse = await fetch('/api/messages');
+    const messages = await messagesResponse.json();
+    messages.forEach(message => {
+      const user = users.find(user => user.id === message.user_id);
+      if (user) {
+        displayMessage(user.name, message.message);
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching messages:', error);
+  }
+};

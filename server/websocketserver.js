@@ -1,6 +1,6 @@
 const WebSocket = require("ws");
-const { saveMessageToDB } = require('./database');
-const connectedUsers = new Map(); 
+const { saveMessageToDB, addUserToDB, getUserByName } = require('./database');
+const connectedUsers = new Map();
 
 const initializeWebsocketServer = (server) => {
   const websocketServer = new WebSocket.Server({ server });
@@ -11,9 +11,13 @@ const initializeWebsocketServer = (server) => {
 };
 
 
-const onMessage = (ws, message, websocketServer) => {
+const onMessage = async (ws, message, websocketServer) => {
   const data = JSON.parse(message);
   if (data.type === 'join') {
+    const user = await getUserByName(data.username);
+  if (!user) {
+    await addUserToDB(data.username);
+  }
     connectedUsers.set(ws, data.username);
     broadcastUserList(websocketServer);
   } else if (data.type === 'message') {
@@ -28,10 +32,10 @@ const onClose = (ws, websocketServer) => {
 };
 
 const broadcastUserList = (websocketServer) => {
-  const userList = Array.from(users.values());
+  const userList = Array.from(connectedUsers.values());
   websocketServer.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: 'userList', users: userList }));
+    client.send(JSON.stringify({ type: 'userList', users: userList }));
     }
   });
 };
@@ -39,7 +43,8 @@ const broadcastUserList = (websocketServer) => {
 const broadcastMessage = (websocketServer, username, message) => {
   websocketServer.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ type: 'message', username, message }));
+      client.send(JSON.stringify({ type: 'message', username, message
+     }));
     }
   });
 };
