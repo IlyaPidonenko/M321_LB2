@@ -28,16 +28,18 @@ const onClose = (ws, websocketServer) => {
 };
 
 const broadcastUserList = (websocketServer) => {
-  const userList = Array.from(connectedUsers.values());
+  const userList = Array.from(users.values());
   websocketServer.clients.forEach(client => {
-    client.send(JSON.stringify({ type: 'userList', users: userList }));
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify({ type: 'userList', users: userList }));
+    }
   });
 };
 
 const broadcastMessage = (websocketServer, username, message) => {
   websocketServer.clients.forEach(client => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(JSON.stringify({ username, message }));
+      client.send(JSON.stringify({ type: 'message', username, message }));
     }
   });
 };
